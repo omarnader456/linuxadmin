@@ -1,0 +1,96 @@
+#modifying shell and file structure and navigation
+
+#man <exec> loads the manual page for the application
+
+man <exec>
+
+# on minimized ubuntu server installation, the man command is ommitted. 
+#It can be restored using the following commands
+
+sudo apt update
+sudo apt install man-db manpages manpages-dev
+
+#man-db provides the actual man command and man page database
+#manpages is the standard linux manual pages for commands and system utilities
+# manpages-dev is an additional manual page for C library functions and development-related APIs
+
+# it is also useful to install package documentation tools sudo apt install info
+
+sudo apt install info
+#test with 
+info coreutils or info bash
+
+# if you can identify some keyword or some description of what the command does, use apropos or man -k
+
+apropos "working directory"
+
+man -k "working directory"
+
+# cd <full path> or <relative path> changes the current directory to the specified path
+
+cd <full path> or <relative path>
+
+#cd .. moves back to the parent directory of the current directory
+#cd ~ goes back to your own defined home directory
+#cd - moves to the last visited directory
+
+#pwd lists the current working directory
+
+pwd
+
+# '/' is the root of a branching tree of folders
+
+# ls lists the files and directories in the current directory
+
+ls
+# -l flag shows detailed info about each file
+
+#-t sorts by modification time
+
+#-r reverses the order of the current sorting arrangement
+
+#-a flag show hidden files (those that begin with a dot)
+
+# export sets export attribute for shell variables
+# marks each name for automatic export to the environment of subsequently executed commands
+
+#export PS1 modifies the PS1 variable that controls the appearance of the current shell prompt
+
+# PS1 expects string format as data
+#PS1 is effect by special escape sequences
+# \u current username
+#\h hostname
+#\w current working directory
+#\W current directory name
+#\$ $ for normal users, # for root
+#\t current time
+#\n newline
+
+#changes are not permanent unless you add the specific PS1 definition to the ~/.bashrc file
+
+#source ~/.bashrc reads and executes the commands in the .bashrc file
+
+source ~/.bashrc
+
+#mkdir creates a new directory
+mkdir <dirname>
+
+#mv moves a file from one directory to another
+mv <file> <path>
+
+#rmdir or rm -d removes an empty directory
+# non-empty directories require rm -r
+
+rm -d
+rmdir
+rm -r
+
+#touch creates new empty files
+
+touch <file>
+
+#pushd <dir>  moves you to a directory and keeps track of that directory. popd brings you back to the 
+#previous directory tracked by push. Basically same functionality as commonly 
+#used push and pop functions in stack structures
+
+
