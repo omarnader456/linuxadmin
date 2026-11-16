@@ -1,0 +1,73 @@
+DOwnloading iso image and Virtual Box
+
+#download iso image for ubuntu server lts 24.04.5
+// curl -L -O https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso
+
+#curl performs http requests and the L parameter follows redirects (curl automatically doesnt without the -L flag) 
+#the O parameter makes the downloaded resource on the client match the name of the resource on the server
+
+#downloading virtual box
+#ensure dependencies are installed on the host os
+# on linux pop os (ubuntu type system) use the following commands
+sudo apt update
+sudo apt install build-essential  dkms linux-headers-$(uname -r)
+#virtualbox needs specific kernel headers to be installed and system76 (behind pop os) maintains ther're own linux kernel
+
+#using wget allows us to download and register oracle's GPG key to verify virtualbox packages
+#needed prerequisites
+sudo apt install wget gnupg ca-certificates
+
+#downloading and registering oracle's gpg key
+wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc\
+ | sudo gpg --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg --dearmor
+
+# wget downloads resources from the web , the -O flag set the output location and the - after the O specifies 
+#standard output (the terminal stream instead of a file in disk storage)
+#the pipeline operator | takes the output of the left command and feeds it as input to the command on the
+# right hand side
+
+#sudo is used to allow access to the protected system directory /usr/share/keyrings/
+#gpg is a tool used for encryption and cryptographic signing (gpg stands for GNU Privacy Guard)
+#--output specifies the location where the processed key will be saved
+#--dearmor strips away human readable asci armor like "the -----BEGIN PGP PUBLIC KEY BLOCK-----"
+
+# to allow apt to be able to install packages from external software repositiories, the apt package manager needs
+# to verify the cryptographic signature of the developer before begining an install
+# placing the binary .gpg file inside the /usr/share/keyrngs/ directory informs your system that it can trust 
+# software signed with oracle's private key
+
+#adding the software repository to the package manager and linking it to the security key that was configured
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] \
+ https://download.virtualbox.org/virtualbox/debian noble contrib" \
+ | sudo tee /etc/apt/sources.list.d/virtualbox.list
+
+#echo prints the string text command which is used by the command following the pipeline operator
+#deb tells the apt package manager that this repository contains pre-compiled packages ready to be installed
+#deb-src on the other hand, points to uncompiled source code
+#[arch=amd64 ...] restricts apt to only download packages built for x86  64-bit amd64  processors
+#[... signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] links the repository to the gpg
+# key previousely created 
+#https://download.virtualbox.org/virtualbox/debian web url hosting oracle's ubuntu and deb packages
+#noble specifies the host operating system release codename and contrib selects the repository
+# component containing packages that are free but these free components could interact with non-free components
+#/etc/apt is a protected system directory on the host machine
+# tee reads incoming text and prints it at the same time to the terminal and the target file
+# sudo tee used instead of redirect operator '>' because the operator fails with permission denied error 
+#  /etc/apt/sources.list.d/virtualbox.list is the destination file path. 
+# The apt package manager automatically reads every .list file inside the sources.list.d/ directory
+
+#next update package list and install virtual box
+
+sudo apt update
+sudo apt install virtualbox-7.2
+
+#verifying installs can be accomplished with the following command
+
+VBoxManage --version
+
+#launching the software with the following command
+
+virtualbox
+
+ 
