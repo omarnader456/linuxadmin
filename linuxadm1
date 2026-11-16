@@ -1,0 +1,261 @@
+Lesson 1 ssh and basic information and system information
+
+#the following command records the shell session including its output (can be stopped with either exit
+# or pressing ctrl+D
+
+script linuxadm1.log
+
+#logging in to a remote system with ssh
+#specifiy username and ip adress
+
+ssh<username>@<ip address> 
+
+#should be prompted for a password after this command. Enter the user's password
+
+# a remote server configured witha public key requires us to point to the private key when connecting
+
+ssh -i ~/.ssh/id_rsa <user>@<ipaddress>
+
+#~/.ssh/
+#├── id_rsa       # Private key
+#└── id_rsa.pub   # Public key
+
+# public key is installed in the server usually inside ~/.ssh/authorized_keys
+# the private key is on the host system
+
+#if you want to restrict ssh to only the specified identity, then use the following command
+
+ssh -o IdentitiesOnly=yes -i ~/.ssh/id_rsa support@192.168.1.99
+
+# generating a public private key pair
+
+ssh-keygen -t ed25519
+
+#ssh-keygen is an openssl tool for generating a pair of public and private keys
+#ssh-keygen -t ed25519 is the algorithm which uses EdDSA signature  scheme using Curve 25519
+# (Curve 25519 more secure than RSA)
+#saving location is prompted but default option is ~/.ssh/id_ed25519
+#you will be prompted for a password to encrypt the private key on disk (can be left blank)
+#the two files created are id_ed25519 and id_ed25519.pub (make sure id_ed25519 is securely stored)
+#-f ~/.ssh/custom_name saves the file under a specific file name to prevent  overwritting existing default keys
+
+# install public key on the server using 
+
+ssh-copy-id <username>@<ip address>
+
+# the  i param used in the following manner  -i ~/.ssh/custom_key.pub specifies a particular key 
+# and used when multiple keys exist on the host computer
+
+#now you can connect via the private key to the server
+
+ssh -i ~/.ssh/id_ed25519 <username>@<ipaddress>
+
+#you check the ssh keys on your host machines using:
+
+ls -la ~/.ssh/
+
+#you can edit the permission of the private key file with the following command:
+
+chmod 600 ~/.ssh/id_ed25519
+
+#chmod sets file permission and uses 3 octal numbers (base 8 which go from 0 to 7) the first number 
+#is the permission for the owner 6, which is 2 (read) + 4 (write)
+
+#second number is 0 and represents group access privilege for members of the file's group
+# (in this case no privileges for group)
+#third number is everyone else (no privileges)
+
+
+#the folloowing command displays the current linux distro and version being used
+lsb_release -a
+
+
+#the same info is availabe insite the /etc/os-release system file (lsb_release may not be available on the server)
+
+cat /etc/os-release
+
+#system information and some interesting facts like kernel version and hardware
+# platform are accessible with the following command
+
+uname -a
+
+#the uptime command reveals how long the system has been running
+uptime
+
+#can use cat to access /proc/uptime but output is strange (use uptime instead)
+
+cat /proc/uptime
+
+#use whoami to print user name, who to show who is logged in, and w to view the logged in users's activity
+
+whoami
+who
+w
+
+#lscpu displays information about the cpu architecture
+#lsblk lists block devices
+# lspci lists pci devices
+#lsusb lists usb devices
+
+lscpu
+lsblk
+lspci
+lsusb
+
+# free -h reveals memory used by the system and vmstat gives memory statistics
+
+free -h
+vmstat
+
+# top displays processes and consumption of resources.  the htop command is an
+# interactive human friendly version of top
+
+# df -h shows disk space usage, and du -h estimates the size of your folders
+
+df -h
+du -h
+
+#ipconfig shows network interfaces and ip addresses is the modern substitue of ifconfig
+
+ifconfig
+ip address 
+
+# netstat displays network connections, listening ports, routing tables, and interface stats
+# ifstat monitors network bandwidth usage 
+# iftop shows which connections are consuming network bandwidth
+# ip displays and configures network interfaces, ip addresses and routes
+#command -v <specific comand>  checks whether a command is available
+
+# sudo netstat -tulnp displays tcp and udp sockets currently listening for incoming connections, 
+#accompanied by the processes associated with them.
+
+sudo netstat -tulnp
+
+# used to identify services running on your server and the ports that are listening
+
+# in -tulnp , the -t displays tcp sockets, -u displays udp sockets, the -l displays listening sockets
+# (which includeds udp sockets ready to receive traffic)
+# -n displays numeric ip addresses and port numbers instead of resolving names
+#-p displays the process id and program associated with each socket
+
+
+#netstat -rn displays linux kernel's ipv4 routing table (numeric ip addresses)
+#routing table tells the os where tos end network packets depending on destination ip adresses
+# -r option displays routing table and -n already covered
+
+netstat -rn
+
+#ip route is the modern alternative
+
+#ifstat -t 1 continously monitors incoming and outgoing network bandwidth of the network 
+#interfaces, updates happen each second
+
+ifstat -t 1
+
+# -t adds a timestamp to the output 
+# 1 sets the reporting interval 
+
+# sudo iftop opens a real-time interactive network bandwidth monitor showing the network
+# connections that are transfering data
+
+sudo iftop
+
+#ifstat shows total  incoming and outgoing bandwidth per interface 
+#iftop shows bandwidth consumption associated with individual network connections
+
+#sudo iftop -i enp0s3 is tha same as sudo iftop but specifies the enp0s3 interface for monitoring
+
+sudo iftop -i enp0s3
+
+#sudo iftop automatically selects an interface
+
+# ip -br link is a compact summary of your linux network interfaces and their operational states
+# -br is for brief output format
+# link displays link-layer network interface information
+
+ip -br link
+
+# ip -br addr shows interface ip addresses
+ip -br addr
+
+
+#ip -s link displays detailed interface stats
+
+ip -s link
+
+# command -v <exec> displays the path where the executable is located and no output if the command is unavailable
+
+command -v iftop # use any executable command not just iftop
+
+#netstat -i displays network interface stats, including packets counts, errors, drops, 
+#and other interface-related information
+
+netstat -i
+
+
+#passwd changes the password of the user
+# with no arguments the terminal will prompt you to confirm your current password then you will be asked to 
+#type the new password and type it again for confirmation
+
+passwd
+
+#sudo passwd username allows administrators to bypass the current password prompt, effectively
+# resetting forgotten passwords (need root privilege)
+
+sudo passwd username
+
+#sudo passwd -S username outputs the password state (PS for usable password, LK for locked, NP for no password)
+# also includes last change date and aging rules
+
+passwd -S username 
+
+
+#sudo passwd -e username immediately expires a user's passwd sot hat they must choose a 
+#new one the next time they sign in
+
+sudo passwd -e username
+
+
+#sudo passwd -l username disables password authentication and sudo passwd -u username restores it
+
+sudo passwd -l username
+
+sudo passwd -u username
+
+#sudo passwd -d username removes the password entirely and leaves the account without a password
+
+sudo passwd -d username
+
+#the tree command is a recursive directory listing utility that displays the folder and file structure of a path
+# as a visual, indented tree diagram
+# the -L flag <number> limits what is displayed upto the level of <number> subdirectories
+#-d flag only shows folder hierarchy (files not shown)
+#-a reveals dotfiles and hidden directories (items beginning with a dot)
+#-I uses patterns to exclude specific folders or patterns.
+#-f prints the complete relative or absolute path prefix next to every item
+#-h human readable file sizes next to each item
+#-p standard linux file permissions
+#-C forces colorization based on file types
+#-J makes output json formatted instead of ASCII art
+#-o writes output to file instead of the terminal
+
+
+
+tree [options] [directory]
+
+#sudo shutdown now closes the server 
+
+sudo shutdown now
+
+#exit terminates ssh connection
+
+exit
+# exit can also end script logging 
+
+
+
+
+
+
+
+
