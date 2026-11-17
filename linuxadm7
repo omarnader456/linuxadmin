@@ -1,0 +1,65 @@
+#server apache2 systemctl
+
+
+#installing apache
+sudo apt install apache2
+#confirm server is running by going to http://[external ip of server] // shoudl seee confirmation page
+#apache is installed as a service - starts automatically when the server starts and keeps running 
+# whether anyone is logged in or not. 
+
+#stop server with sudo systemctl stop apache2 
+
+sudo systemctl stop apache2
+
+#check by typing systemctl is-active apache2
+ systemctl is-active apache2
+#also try using sudo systemctl status apache2
+sudo systemctl status apache2
+#check for Active: active (running)
+#also refresh the page and see if it loads to confirm server stopped
+
+#you can restart the system with sudo systemctl start apache2
+sudo systemctl start apache2
+
+#you can check configurations in /etc/apache2/apache2.conf
+#also check /var/log/apache2/access.log which contains your session from when you browsed to the test page
+
+# in /etc/apache2/apache2.conf there is a line with text IncludeOptional conf-enabled/*.conf, which tells
+#apache to merge the files in the confconf-enabled that end in .conf with /etc/apache2/apache2.conf at load
+
+#the location of the default webpage is defined in DocumentRoot parameter in the file /etc/apache2/\
+#sites-enabled/000-default.conf.
+
+#default page normally at /var/www/html/index.html
+#edit the indext.html file and change the html format of the page and experiment with it then reload the 
+#web page or just paste http://<global server ip> into a web browser.\
+
+#for aws/azure/gcp/oci users make sure to add port 80 to your instance security group to allow 
+#inbound traffic to your server
+
+#systemclt is-enabled apache2 checks whether the service is enabled to start automatically
+
+systemctl is-enabled apache2
+
+#sudo systemctl disable --now apache2 // the disable flag prevents apache from automatically starting
+#during boot
+sudo systemctl disable --now apache2
+#--now immediately stops apache if it is currently running
+
+#sudo ss -tulnp displays a list of all active listening network ports on a linux system with
+# the specific programmes using them
+
+#modern alternative is netstat -tulnp
+
+#grep -E ':(80|443)\b' uses grep which searches input text or files and prints any lines that
+# match the given pattern
+#-E enables extended regular expression allowing special characters like '(' , ')' , '|' to 
+#work without needing backslashes
+#: matches the colon character (typical : is used to seperate ip from port)
+# (80|443) groups choices together and uses pipe '|' (or) operator to match either 80 or 443.
+#\b ensures number ends there, so only :80 or :443, not :8080 or :4433
+
+
+
+
+ 
