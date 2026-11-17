@@ -1,0 +1,42 @@
+#more and less and tab completion
+
+#more is a command that views text files or long command outputs one screen at a time. 
+#more mainly moves forward. Less is also a text viewing command tool. Less moves in both directions.
+# more loads the whole file before viewing, while less only loads what fits on your screen , which
+#makes it beteer for huge log files.
+#more exits automatically once the end of the file is reached, while less always stays pen until
+# you press q to close.
+
+less filename.txt
+more filename.txt
+
+#work with pipe operator
+
+ls -la | less
+dmesg | more
+
+# in less -
+#spacebar or page down go to next page
+# b or page up go to previous page
+# down arrow or enter go down one line
+# up arrow or k go up one line
+# /word searches for text
+# q quits
+# N previous intance of word and n next instance of word
+# g top of file and G EOF
+
+#in more -
+# spacebar next page
+# b previous page (doesnt work with pipes, only files)
+# enter down one line
+#/word search text
+#q or reach EOF to quit
+
+#history displays previousely used commands
+#!<number> repeats the command numbered <number> from the history cache
+#ctrl + r matches what you right with the cache of previous commands
+#repeated presses of ctrl + r match other instances of the same command
+
+ 
+
+
