@@ -1,0 +1,133 @@
+#permissions and timezones and hostnames
+
+#less is a command used to gradually load contents of a file to be viewed (one screen at a time)
+
+less filename
+
+#less also accepts output from other operations (makes reading more human friendly)
+
+command | less
+
+# -N displays line number 
+#-i ignored case unless uperrcase characters included i the query
+# -s prevents line wrapping, which allows the use of horizontal scrolling
+# -F to automatically exit if the entire file can be displayed without needing to scroll
+# -X prevents less from clearing the terminal screen after quitting
+#-p jumps to the first occurrence of a word when file is opened
+
+#reboot restarts the system (logs you out if using ssh)
+reboot
+
+#sudo command gives root level privileges to non-root users to run root-only commands
+
+sudo <command>
+
+#Global changes affect all users while local changes affects only a specific users environment
+
+#linux has 3 user types
+# root is the powerful superuser capable of executing any command
+# sudoers are regular users that are able to use sudo (allowed to carry out some or all global changes)
+# regular users can access the system but only perform local changes
+
+# you can create a regular user and add it to the sudoers group
+
+adduser <name>
+
+# the command creates a user  with name <name> and also a group with name <name> and adds the user 
+#to the group just created
+#also a new home directory is created /home/<name>
+# default config files from /etc/skel are copied
+# asked to set password
+#asks optional data like user's full name
+
+
+# verify user created with id <name> which shows the uid gid and additional info
+
+id <name>
+
+# adding the user to the sudoers group without removing them from the groups they already are part of
+sudo usermod -a -G sudo snori74
+
+# adds user <name> to sudo group 
+# the -a flag appends the user to  supplementary groups without removing existing memberships
+# -G specifies supplementary group/groups
+
+# switch to new user with su - <name>
+ su - snori74
+
+#exit returns to the original user
+
+exit
+
+# visudo is a command line tool used to safely edit /etc/sudoers file which controls which
+# users and groups can run administrative level commands
+# the command lock /etc/sudoers to prevent multiple writes 
+# opens a temporary copy of the file /etc/sudoers.tmp in the systems default text editor 
+#saving causes automatic syntax checks 
+# syntax errors result in warnings (specifies line where error is located) -
+# e reopens the file to fix problem
+# x discards changes leaving original file intact
+#q force saves the broken file 
+# only after syntax check pass does visudo copy the temp file to /etc/sudoers
+
+sudo EDITOR=nano visudo
+
+#sudo visudo -f /etc/sudoers.d/custom_rules creates a file in sudoers.d directory to safely edit permission rules
+
+sudo visudo -f /etc/sudoers.d/custom_rules
+
+#cat /etc/shadow prints contents of the /etc/shadow file which contains the hashed  passwords
+
+cat /etx/shadow
+
+#last reveals login history
+last <name>
+last root
+
+#lastb root checks for failed login attempts
+
+lastb root
+
+#sudo -i lets you become root
+
+sudo -i
+
+#exit or logout takes you back to your original user
+
+exit
+logout
+
+#checking the last few times sudo was used sudo journalctl -e /usr/bin/sudo
+
+sudo journalctl -e /usr/bin/sudo
+
+
+# rename server with sudo hostnamectl set-hostname <name> instead of editing /etc/hostname and /etc/hosts
+
+sudo hostnamectl set-hostname <name>
+
+
+# check timezone with timedatectl
+timedatectl
+
+#list available timezones with timedatectl list-timezones
+
+timedatectl list-timezones
+
+#set timezone with sudo timedatectl set-timezone Australia/Sydney 
+sudo timedatectl set-timezone Australia/Sydney
+
+# sudo -i launches a new login shell for root. A new environment is created for root 
+#with root's home directory and shell config files
+#sudo -s launches new shell for root but no login shell is created. This means 
+#environment and shell configs are not changed and remain set for the current user.
+
+sudo -s
+
+
+
+
+
+
+
+ 
