@@ -1,0 +1,101 @@
+#software installations
+
+#apt search "string description" searches for packages satisfying the description query
+
+apt search "midnight commander"
+
+#  sudo apt install mc install mc package
+
+ sudo apt install mc
+
+# /etc/apt/sources.list.d/ubuntu.sources is where the locations of repos are specified.
+
+# '/' is the root directory in linux underwitch everything else resides. It is not the same as windows C drive
+# because on windows memory can be partitioned in a D drive outside the scope of the c drive
+# on linux a second partition would still appear under the the root directory
+
+#the /bin directory contains essential user binaries that are must be present when the system is mounted
+# in single-user mode. Apps like FireFox, if not installed as snaps, are stored in /usr/bin.
+# Important system programmes like bash are stored in /bin. The /usr directory can belong to 
+#a different partition. Files stored in /bin directory ensure that the system will have these 
+#important utilities even if no other file system is mounted. The /sbin directory is similar to /bin; it houses
+#essential system administration binaries.
+
+
+#/boot this directory contains the files needed to boot the system. For example, the GRUB boot loader's files
+#and the Linux kernels are stored in this directory. However, the boot loaders config files are stored 
+#elsewhere in the /etc directory where config files are stored.
+
+
+#/cdrom is not part of the FHS standard, even though ubuntu and other os's have it. It acts as a temporary 
+#location for CD-ROMS inserted in the system. The standard place for temporary storage is the /media directory.
+
+# the /dev directory contains a number of special files that represent devices. They are not actual files as we
+#know them, but they appear as files. For example, /dev/sda represents the first SATA drive in the system. 
+# Opening a partition editor and editing /dev/sda  allows us to partition the /dev/sda SATA drive.
+# the directory also contains pseudo-devices that correspond to virtual devices (not actual hardware ).
+# examples include dev/random - which produces random numbers, and /dev/null - which produces
+# no output and discards any input.
+
+#/etc directory contains configuration files that can be edited by hand in a text editor. 
+#/etc/ directory contains system-wide configuration files. User-specific config files are placed in the user's home directory.
+
+#/home contains home folders for each user. For example, if a user is named bob, then there 
+#is a home folder at /home/bob. The home folder contains the  user's data and user-specific configuration files.
+#Each user has only write access to their home folder, and require elevated permissions (becoming the root)
+# to modify other files on the system.
+
+# /lib directory contains essential libraries needed by /bin and /sbin folders. Libraries needed by /usr/bin
+#binaries are located in /usr/lib. There will also be a /lib64 folder counterpart on 64-bit systems.
+
+#/lost+found - each linux file system has a /lost+found directory. If a file system crashes, then a 
+#file system check will be perfomed during next boot. Any corrupted files will then be place in lost+found
+#directory, allowing us to recover as much data as possible.
+
+#/media - contains subdirectories where removable media devices inserted into the computer are mounted. 
+#For instance, inserting a CD into the linux system will automatically cause a directory to be created
+#insode the media directory. This new subdirectory contains the contents of the CD.
+
+#/mnt - this directory is where sys admins mounted temporary file systems while using them. For Example,
+# if you're mounting a windows partition to perform file recovery operations might mount /mnt/windows.
+# It is possible to mount other file systems anywhere on the system.
+
+#/opt - contains subdirecotries for optional software packages. It is commonly used by proprietary 
+#software that does not obey the standard file system hierarchy. For example, installing a programme
+# could dump its files in /opt/application.
+
+#/proc - this directory does not contain standard files. Its files are special and represent 
+#system and process information.
+
+#/root - this is the home directory of the root user. Instead of existing
+# in /home/root, it is located at /root. This is not the same as the system root directory '/'.
+
+#/run - provides a standard place for applications to store transient files they require like sockets
+# and process IDs. These files can't be stored in /tmp because files in /tmp may be deleted.
+
+#/sbin - this is similar to /bin. /it contains essential binaries that are generally intended to be
+#run by the root user for system administration.
+
+#/snap - this directory is not part of the FHS. It holds snap packages and other files associated with snap.
+#Ubuntu now uses snap by default, not every ditro is guaranteed to have this.
+
+#/srv - this directory contains data for services provided by the system. If you were using the
+#Apache HTTP server to serve a website, you'd likely store your website's files in a directory inside the /srv 
+#directory. 
+
+
+#/tmp - apps store temporary files here. These files are generally deleted whenever your system is restarted
+#and may be deleted at any time by utilities such as systemd-tmpfiles. 
+
+#/usr - contains apps and files used by users, as opposed to apps and files used by the system.
+# For instance, non-essential apps are located inside the /usr/bin directory instead of the /bin directory
+# and non-essential system administration binaries are located in the /usr/sbin directory instead of 
+# the /sbin directory. Libraries for each are placed inside the usr/lib directory. The /usr directory also
+#contains other directories. For example, architecture-independent files like graphics are located 
+#in /usr/share. Also, locally compiled apps are installed in the /usr/local directory by default. This prevents
+#them from mucking up the rest of the system.
+
+#/var - is a writtable counterpart to the /usr directory, which must be read-only in normal operations. 
+#Log files and everything else that would normally be written to /usr during normal operations are 
+#written to the /var directory. For exampke, you'll find log files in /var/log.   
+    
