@@ -59,6 +59,18 @@ sudo systemctl disable --now apache2
 # (80|443) groups choices together and uses pipe '|' (or) operator to match either 80 or 443.
 #\b ensures number ends there, so only :80 or :443, not :8080 or :4433
 
+#you can also check ssh service with sudo systemctl status ssh (ubuntu 2404 some systems use sshd isntead)
+
+#import to note that ssh is the remote access protocl, sshd is the server daemon, and ssh.service is the
+#systemd unit that typically manages it on Ubuntu.
+#even if ssh.service is temporarily inactive, an active ssh.socket can still accept connections
+#ssh.socket is used to listen for ssh connections and activate the ssh service when needed
+# make sure to keep this in mind when running the following two commands
+
+sudo systemctl status ssh.service
+sudo systemctl status ssh.socket
+
+
 
 
 
