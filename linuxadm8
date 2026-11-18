@@ -1,0 +1,92 @@
+#text processing
+
+#cat dumps the the data of a file as output to stdout
+cat <path>/<file>
+
+#tail shows the last few lines of a file
+#-f flag allows the viewing to continuously update and reflect changes being made
+
+#sudo apt install rsyslog installs the old systems logging which allows us to examine 
+#/var/logs/auth.log (only need this if using a minimal version of Ubuntu)
+#minimal ubutnu installs only support systemd journal 
+
+sudo apt install rsyslog 
+
+# tail -<number> reveals the last <number> lines
+
+# head is the opposite of tail
+
+# wc filename.txt outputs three numbers: lines, words, and bytes
+#-l counts newline characters
+#-w counts words separated by whitespace
+#-c counts bytes
+#-m counts charcaters (use for multi-byte utf-8 text)
+#-L displays the character length of the longest line in the file
+
+# sort is used to sort the order of the output
+#uniq gets only the uniq instances of the output
+
+#the cut command extracts specific sections or columns from each line of a file or piped text. 
+#slices text vertically by bytes, characters, or delimiter-separated fields. 
+#-f selects fields seperated by delimiters
+#-d sets the character used to separate fields 
+#-c each specific character position from each line
+#-b extracts byte position from each line
+#-- inverts selection to everything except the chosen fields or character
+#-s skips lines without the delimiter
+
+#grep searches for specific text patterns inside files or command output and 
+#prints every matching line
+#-i ignores case
+#-v shows lines that dont match
+#-r searches through all files inside a directory and its subfolders
+# -n displays line number along each matching line
+# -c printsthe total number of matching lines instead of text
+# -w matches only words, ignoring partial matches inside longer words
+# -E enables extended regular expressions adds extra operators and avoids needing to use 
+# a backslash (\) before special characters
+#-l list only the names of files that contain a match
+
+#inside the pattern
+ # (^) "^anything " atches lines beginning with anything
+# ($) "cpp$" matches lines ending in cpp
+# (.) "pi." matches any character so pi1, pi2, pia, etc.
+#^$ specifies an empty lime
+# \< start of a word "\<cat" matches cat but not scatter
+# \> matches end of a word "at\>" matches at or cat, but not late
+#\b for any word boundary "\bcat\b" same as "\<cat\>"
+#. any character except a new line
+#[abc] any character inside [] gr[ea]y matches grey and gray
+# [^abc] matches any character ot in[]
+#[a-z] or [0-9] matches any character in the range
+#\ escapes a special symbol (match it literally) 
+#use posix classes inside square brackets
+#[[:digit:]] matches any number (0-9)
+#[[:alpha:]] matches any letter in (a-z, A-Z)
+#[[:alnum:]] matches any letter or number
+#[[:space:]] matches spaces, tabs, and line breaks
+#[[:upper:]] / [[:lower:]] matches uppercase or lowercase letters
+#use grep -E for quantifiers to avoid needing to  escape symbols
+#* 0 or more times
+#+ 1 or more times
+#? 0 or 1 time
+#{n} exactly n times
+#{n,} n or more times
+#{n,m} between n and m times
+#use -E mode for parenthesis and pipes
+#| acts as logical or 
+#() groups characters so that quantifiers affect the entire group "(ab)+"
+# matches ab, abab, and ababab
+#\1 matches the exact same text as previous group. Example:
+#"([a-z]+) \1" finds repeated words like the the
+#grep -P allows the use of Perl-style shortcuts
+#\d matches any digit
+#\w matches any word character
+#\s matches any whitspace
+#also -E allows us to use '
+#grep -Po ' (?<=user=)\w+' extracts only the username right after user=
+
+
+# can use < to send output to a file in  write mode
+#<< is the same but in append mode (override existing content only adds)
+    
