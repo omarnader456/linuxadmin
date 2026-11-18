@@ -1,0 +1,155 @@
+#networking start
+
+##ss is a standard utility that replaces netstat
+#nmap is a port scanner (not installed by default)
+
+# ss-ltp
+#shows which ports are open on which interfaces
+#-l for listening ports
+#-p for process (user  and pid)
+#t for tcp sockets
+
+#install nmap sudo apt install nmap
+
+#nmap scan ports to see which are open 
+nmap localhost
+#localhost is the loopback network address (127.0.0.1)
+#to see what services are exposed to others, first use ip address to determine the 
+#ip of your actual network card then use nmap with that ip
+
+#the linux kernel has built in firewall functionality called netfilter
+#utilitites on you machine interact with netfilter.
+#the most low-level utility to interact with netfilter is iptables, and the newer nftables
+#less complex tool is ufw
+#use sudo iptables -L to check existing rules
+# sudo ufw allow ssh allows ssh 
+#sudo ufw deny http denies http
+#explicitly allow ssh so you dont loose connection to the
+# server (your using ssh to use the server's command line)
+#not explicitly allowing something means that the port is automatically denied
+#enable this with sudo ufw enable
+#now using sudo iptables -L will show the new rules added
+#sudo ufw status shows the rules
+#rules also readable from /etc/ufw
+#disable ufw with sudo ufw disable
+#can allow specific ports and optionally specify protocol:
+#sudo ufw allow <port>/<optional: protocol> (like sudo ufw allow 53/tcp)
+#can also deny with the same layout as allow
+#you can delete existing rules with sudo ufw delete deny 80/tcp
+#ufw reads from /etc/services so you can allow or deny based on service name:
+#sudo ufw allow ssh
+#sudo ufw status shows if ufw enabled or not and lists rules made with the tool
+#logging is enabled with sudo ufw logging on
+#disable loggging with sudo ufw logging off
+#can also allow access by specific ip sudo ufw allow from <ip address> 
+sudo ufw allow from 192.168.1.0/24
+#can allow by ip and port
+sudo ufw allow from <target> to <destination> port <port number>
+#can also add protocl
+sudo ufw allow from <target> to <destination> port <port number> proto <protocol name>
+#ping requests automatically allowed by ufw 
+#to diasable ping (icmp) requests, you need to edit /etc/ufw/before.rules and remove\
+# the following line:
+-A ufw-before-input -p icmp --icmp-type destination-unreachable -j ACCEPT
+-A ufw-before-input -p icmp --icmp-type source-quench -j ACCEPT
+-A ufw-before-input -p icmp --icmp-type time-exceeded -j ACCEPT
+-A ufw-before-input -p icmp --icmp-type parameter-problem -j ACCEPT
+-A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT
+
+#you can also just change the accept to drop
+
+-A ufw-before-input -p icmp --icmp-type destination-unreachable -j DROP
+-A ufw-before-input -p icmp --icmp-type source-quench -j DROP
+-A ufw-before-input -p icmp --icmp-type time-exceeded -j DROP
+-A ufw-before-input -p icmp --icmp-type parameter-problem -j DROP
+-A ufw-before-input -p icmp --icmp-type echo-request -j DROP
+
+#deny also supports ip, can also add port and protocol
+
+#use sudo ufw status numbered to show id number and order of rules
+#you can delete numbered rules
+sudo ufw delete <number>
+
+#you can insert a numbered rule
+sudo ufw insert 1 allow from <ip address>
+
+#for iptables the -F flag flushes a chain (removes all rules from that chain).
+iptables -F OUTPUT //removes every rule currently in OUTPUT chain 
+
+#usually flush chains before adding new rules
+
+#iptables -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+
+#the -A appends a rule to the chain (here chain is OUTPUT)
+#-m means load a match module, where the state tracking module is the one being loaded
+#now we can track whether the packet belongs to :
+#NEW,ESTABLISHED,RELATED,INVALID
+
+#ESTABLISHED allows us to match packets that are already part of an ongoing connection
+#first packet with SYN flag create a connection and is in new STATE
+#subsequent packets are in the ESTABLISHED state
+#RELATED is, for example: FTP control connection, which creates a data connection; this
+# data connection is related to the control connection
+#INVALID referes to malformed or unexpected packets.
+#-j (jump) is ACCEPT, so packet is allowed
+
+#iptables -A OUTPUT -j REJECT this command rejects packet that reach here
+#-j DROP differs from REJECT because DROP doesnt send a response (packet simply disappears)
+# so sennder waits till timeout
+#-j REJECT blocks packet and immediately sends response
+#iptables check rules from top to bottom
+
+# iptables -A INPUT -p icmp --icmp-type echo-request -j DROP
+# -p here for protocol and --icmp-type specifies the particular type of icmp packet
+#so basically drop all incoming ping requests.
+# iptables -A OUTPUT -p tcp --dport telnet -j REJECT here we reject tcp connection to telnet port
+#--dport is destination port 
+# iptables -A INPUT -i lo -j ACCEPT
+#-i is interface
+#here accepting connections on the loopback interface
+# iptables -A INPUT -p tcp -s 77.66.55.44 --dport ssh -j ACCEPT
+#allow traffic from source ip 77.66.55.44 
+#-s flag for source ip
+# iptables -A INPUT -m mac --mac-source 00:e0:4c:f1:41:6b -p tcp --dport ssh -j ACCEPT
+#here match module is mac , and we are specifying the source mac address with --mac-source
+#basically allow ssh connection from source mac 00:e0:4c:f1:41:6b
+
+# echo "1" > /proc/sys/net/ipv4/ip_forward
+# iptables -t nat -A POSTROUTING -o $EXT_IFACE -j MASQUERADE
+
+#/proc/sys/net/net/ipv4/ip_forwarding is a special kernel parameter that controls
+#whether linux can forward ipv4 packets between interfaces
+
+#param can be enabled with sysctl -w net.ipv4.ip_forward=1
+
+#to make it permanent edit /etc/sysctl.conf
+#or /etc/sysctl.d/*.conf with this: net.ipv4.ip_forward = 1
+
+#-t nat to use the nat table
+#ip tables have more than one table: filter, nat, mangle, raw, security
+#nat tabke is used to rewrite ports and addresses
+#POSTROUTING is the chain we are appending to
+#-o $EXT_IFACE means to match packets leaving through the external interface
+#MASQUERADE is a special NAT TARGET (using current ip address of the outgoing interface)
+# need to do this if the src is a private ip (non-routable over internet)
+#MASQUERADE used instead of SNAT because allows for changing external IP, while SNAT needs fixed ip
+
+# iptables -A INPUT -t filter ! -s 222.111.111.222 -p tcp --dport 23 -j REJECT
+#rejects telnet connection except those from ip 222.111.111.222
+
+# iptables -A INPUT -t filter -m iprange ! --src-range 10.1.1.90-10.1.1.100  -p tcp \
+# --dport 22 -j REJECT
+#Rejects all incoming ssh traffic except from the range 10.1.1.90 - 10.1.1.100
+
+# iptables -A OUTPUT -d 222.111.111.222 -j REJECT
+#reject all outgoing traffic to a remote host with an ip of 222.111.111.222
+
+# iptables -A INPUT -s facebook.com -p tcp --sport www -j DROP
+#here source address uses url and source port uses name instead of its number
+
+
+ 
+
+
+
+
