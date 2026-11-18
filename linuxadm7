@@ -49,7 +49,7 @@ sudo systemctl disable --now apache2
 #sudo ss -tulnp displays a list of all active listening network ports on a linux system with
 # the specific programmes using them
 
-#modern alternative is netstat -tulnp
+#older  alternative is netstat -tulnp
 
 #grep -E ':(80|443)\b' uses grep which searches input text or files and prints any lines that
 # match the given pattern
