@@ -1,0 +1,87 @@
+#finding things
+
+#lloking for files quickly
+#use locate
+locate access.log
+#finds access.log in multiple places
+#if not installed install locate
+sudo apt install plocate
+
+#if you search for "something", locate searches for "*something*". 
+#the search is fast because locate searches the index, but if the index is out of date or missing the info, then results would not be accurate. 
+#update the index by running
+sudo updatedb
+
+#find command searches directories that match somecommand
+find /var -name access.log
+#the command searches in /var dir for files matching access.log
+find /home -mtime -3
+#searches /home dir for files last-modified in the last 3 days.
+#-mtime for days
+# +n for more than n days
+# -n for less than n days
+# n for ndays
+#use -mmin for minutes
+#use -delete to delete files matching the condition
+#-print to print files, show files before you try to delete anything first
+#also find uses permissions, so consider using sudo before find if permission of user is
+#enough
+
+find /var -name access.log 2>&1 | grep -vi "Permission denied"
+#the command filters for access.log in the /var dir, then redirects standerd error output
+#to standeredout. 
+#0 file descriptor for standard input
+#1 file descriptor for standered output
+#2 file descriptor for standard error
+# 1 needs the ampersign '&' because the redirection operator expects a descriptor 
+#as input and file as destination, so we can leave 2 without &, but
+# without an ampersign, the output would be sent to a file named 1, the ampersand acts
+#like a pointer to the file descriptor number 1.
+#grep -vi "Permission denied" filters output based on the literal text argument
+#-v inverts the match (so everything not matching the literal string
+#-i makes search case insensitive
+
+#grep -R searches recursively down a directory structure, even following symbolic links
+grep -R -i "permitRootLogin" /etc/*
+
+#you cant read or search compressed files with less and grep; use zless and zgrep which
+#work on ordinary and compressed files.
+
+#coomands written on the bash terminal generally will be looked up through the path
+#to see where the nano binary comes from
+which nano
+#should output /usr/bin/nano
+
+# the -exec feature of the find command is really powerful.
+#-exec tells find to execute the command that follows instead of just printing the file
+# paths.
+find [path] [conditions] -exec [command] {} \;
+#the curl braces '{}' are placeholders that find replaces with full path of each matched
+# file
+# the backslash semicolon '\;\ marks the end of the -exec command (can also use plus '+').
+#the '\;' stops the shell from interpreting ; as the end of the line 
+#\; runs once per file, while + groups all matched files into a single command
+
+#lsof prints detailed information about open files, including command name, PID
+#, user, and file descriptor 
+
+find [path] [conditions] -exec lsof {} + 2>/dev/null
+#this passes all matched files to lsof, which is faster than running lsof separately 
+#for every file
+
+find / -type f -size +500M -exec lsof {} + 2>/dev/null
+#-size for file size, and +500M for files larger than 500 MB
+#-type f for searching regular files
+#-type d for directories
+#-type l for symbolic links (symlinks pointing to other files or folders)
+#-type s sockets
+#-type p pipes used for processing data between processes
+#-type b/c device files b for block devices (like hard drives) and c for character devices 
+#(like terminals)
+
+#fuser is a faster more minimal version of lsof - its default option only shows PIDs
+# using a file; it contains built in flags to kill those processes
+#-v for verbose output in table format
+#-k kills processes holding files
+#-i add to -k (-ki) makes fuser ask for permission before killing each process
+ 
