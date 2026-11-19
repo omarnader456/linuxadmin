@@ -1,0 +1,460 @@
+#users and groups and permissions
+
+#add a new user
+sudo adduser helen
+#can also use useradd but adduser has more features
+
+#set password for ne user
+sudo passwd helen
+#enter the password for helen 
+
+#now a new entry will be made in the text database for users " /etc/passwd
+#also a group of the same name as the new user will appear in the text database /etc/group
+#the hashed password of the user is stored in /etc/shadow
+
+#adduser also will create a new home directory for the user /home/<user> with the 
+#correct permission
+#create a new group with 
+sudo groupadd developers
+#new group is developers
+
+#creating a new user automatically creates a new group of the same name and adds the user
+#to that group. You can create a new user directly into an existing group by using the 
+#--ingroup parameter for adduser
+sudo adduser --ingroup developers fred
+#fred is now a member of  the developers group
+#a user can be part of  more than one single group
+
+#on ubuntu the first user made should be a member of <user_name>, sudo, and admin
+
+#root user can add a user to an existing group with
+usermod -a -G group user
+#group is the group being added to and user is the user being added
+
+#the first user can do the same by prefixing the command with sudo
+
+#check the groups a user is a member of with
+groups <user>
+#or switch to the user and just type groups to see their specific groups
+sudo su <user>
+groups
+
+#trying to perform actions only allowable by sudo users while not being a sudo user will 
+#fail even if the command is prefixed by sudo. 
+#example: a non sudo user can't read from /var/logs/auth.log
+
+#type exit to return to your original user
+# now as the primary user you can add other users to the sudo group with
+sudo usermod -a -G sudo <new_user>
+
+#again you can check which groups <new_user> belongs to while being logged in as
+#the primary user with
+groups <new_user>
+
+#use ls -l to look at the permissions for the file /etc/sudoers. view the file with 
+#sudo less /etc/sudoers. to add a new entry for your user use the visudo utility.
+#temporarily become root to run this
+sudo -i
+#the prompt should now have a '#'
+#type visudo to edit the file (nano is the typicall editor)
+#lines that begin with a # are optional comments
+#add this line 
+<user name> ALL = NOPASSWD:/sbin/reboot
+
+#visudo automatically checks your syntax, and won't allow you to save if there are mistakes
+#because a corrupt sudoers file could lock you out of your server
+
+#test to see if reboot command now available as the user <user_name>
+#for ssh configs that only allow login with public keys, you need to setup 
+#/home/<user_name>/.ssh/authorized_keys - including the owner and permissions correct. 
+
+#to change ownership of a file use chown
+sudo chown user file
+
+#you can also optionally change the group of a file with chown
+sudo chown user:group file
+
+#if you only need to change the group of a file, then use chgrp
+sudo chgrp group file
+
+#read and write permission have the notation 'rw'
+#read, write, and execute permissions  'rwx'
+
+#you can change the permission on any file using the chmod utility 
+
+#removing permissions from file owner
+chmod u-w file
+#u is for owner of the file
+#-w removes write privileges
+
+#removing write permission from the group
+chmod g-w file
+#g refers to the group and -w as above
+
+#remove permissions from others
+chmod o-r file
+#o is for others
+
+#with nano or vim, viewing the file as the owner, group, or other will let you see it but
+#won't allow you to make changes to the file
+#but you can override this behavior as the owner  with :w!
+#equivalent
+chmod u+w file
+
+#/etc/group is a file that lists the groups on the system and which users belong to them
+
+#/etc/login.defs file is the system-wide configuration file for the shadow password suite.
+#it defines default settings and security policies for user accounts, passwords, and
+#login behavior
+
+#when using commands like  - useradd, userdel, or passwd, the system reads /etc/login.defs
+#to determine what default rules to apply
+
+#getent is a command that retrieves entries from databases managed by the name service 
+#switch. It provides a unified way to query system information such as users, groups,
+#hosts, and services from local files or network sources like LDAP. unlike directly reading 
+#from files such as /etc/passwd, getent queries the same sources the system uses, 
+#ensuring accurate and complete results. 
+
+getent passwd 
+#displays all users available on the system. Queries the passwd database and lists all users
+#from local files and network services like LDAP
+
+#fetch info for specific user 
+getent passwd <user-name>
+
+#fetch all groups configured on the system
+getent group
+
+getent [OPTION] database [key]
+#[OPTION] are optional flags that modify behavior
+#databse is the name of the db to query
+#[key] optional lookup value like username, group name, or hostname
+
+getent -s <service> <database> [key]
+#forces getent to use specific name services instead of the system default.
+# This is useful when your system uses multiple sources such as local files, LDAP, or DNS
+
+getent -s files passwd
+#forces getent to return users only from local files
+
+getent -s <database>:<service> <database [key]
+# <database>:<service> specifies which db should use which service
+# database is the database being queried
+#[key] is an optional entry to lookup
+
+getent -s passwd:ldap passwd gfg0913
+#forces the passwd database to use ldap for the lookup
+
+#-i or --no-idn disables idn encoding during hostname lookups. This option is useful when troubleshooting 
+#DNS resolution or when you want raw lookup result without idn convertion.
+getent --no-idn ahosts <hostname>
+#ahosts is the database used for address resolution
+getent --no-idn ahosts example.com
+
+#-A or --no-addrconfig disables filtering of ip addresses during hostname lookup. Shows all ipv4 and ipv6 addresses
+#for a host, even if the system does not currently support one of the address types. ahosts default behavior is
+#to only show addresses your system can use
+
+getent -A ahosts <hostname>
+
+#list network services and their ports
+getent services ssh
+
+#display network protocols
+getent protocols tcp
+
+#show network name mappings
+getent networks loopback
+
+#display secure user password information
+sudo getent shadow rahul
+
+#By default, when you add a new linux user to the system, i.e. /etc/passwd and /etc/shadow files. 
+#The system grants shell access to the user. 
+#If using POP3 or SMTP or FTP/SFTP, the new account doesnt need shell access.
+#Best way to restrict shell access is to use a special shell called nologin. this shell politely refuses logins.
+#it is intended as a replacement shell field for system accounts that have been disabled or have other user-level
+#access such as ftp, pop3,smtp etc.
+#This is a common practise followed by isp or web hosting service provider's web, mail and FTP server(s).
+
+
+#full path using type or command commands
+type nologin
+command -V nologin
+
+#ensure that /etc/shells file contains nologin, else services such as ftp may not allow login.
+#if not append nologin to it with
+echo "/sbin/nologin" >> /etc/shells
+
+#now block shell access for the account
+usermod -s /sbin/nologin <user>
+#-s changes the default login shell
+
+#adding a new user without shell access
+ useradd -s /sbin/nologin tony
+
+#to restore shell access, use usermod or chsh command and supply the path of the new shell
+type bash //path to bash
+chsh -s /bin/bash <user>
+
+# always use visudo to edit /etc/sudoers because you could accidently lock yourself out of admin access if you make
+#a mistake
+
+#confirm account privileges
+id && groups && sudo -l
+#sudo -l lists all the commands and privileges your account is allowed to do
+
+sudo visudo -c
+#checks syntax on your linux sudoers config files without opening a text editor. 
+
+# In /etc/ssh/sshd_config
+PermitRootLogin no
+# Then reload
+sudo systemctl reload sshd
+
+#no root ssh login disabled
+
+#review logs for any root  login
+# Debian/Ubuntu
+sudo grep -i "session opened for user root" /var/log/auth.log | tail -n 20
+# RHEL/CentOS
+sudo grep -i "session opened for user root" /var/log/secure | tail -n 20
+
+#sudo command is governed by policies in /etc/sudoers and files under /etc/sudoers.d, defining what users can use 
+#what commands and under which conditions.
+#visudo is a safe editor for sudoers
+
+#change editor with
+sudo update-alternatives --config editor
+#can also set user-level preferences in your shell rc file
+# Use vim for visudo and other editor-based commands
+export EDITOR="$(command -v vim)"
+# Reload your shell config
+. ~/.bashrc
+
+#create fragments to cleanly and safely edit sudoers and separate custom policies
+# Edit or create a fragment safely
+sudo visudo -f /etc/sudoers.d/99-custom-ops
+
+#you can give full admin privileges without needing to add per-user ALL rules using the admin group
+
+sudo usermod -aG sudo <username>
+
+#use aliases and absolute command paths. keep rules specific and auditable
+/etc/sudoers.d/webops (use visudo -f for editing)
+
+#command alias power
+Cmnd_Alias POWER = /sbin/shutdown, /sbin/halt, /sbin/reboot
+
+#users allowed to run power
+User_Alias GROUPTWO = brent, doris, eric
+GROUP_TWO ALL = POWER
+
+#Runas_Alias lets you target service users
+Runas_Alias WEb = www-data, apache
+GROUPTWO ALL = (WEB) /usr/bin/systemctl
+
+#NOPASSWD only for low risk commands
+GROUPTWO ALL = NOPASSWD: /usr/bin/updatedb
+
+sudo -k && sudo -v && sudo -l
+#sudo -k invalidates cache credentials immediately
+#sudo -v extends cache sudo timeout without running a command
+#sudo -l lists available commans and privileges your account can run with sudo
+
+#nginx is installed and managed by systemd
+#create a dedicated group and user for deployment tasks. This is crucial for auditability and revocation
+
+sudo groupadd -f deploy\
+id -u deployer >/dev/null 2>&1 || sudo useradd -m -G deploy deployer
+#-f is for force add
+#id command displays info about a user
+#id gives info about user deployer
+#> /dev/null redirects stdoutput to /dev/null which discards anything written to it
+# 2>&1 redirects stderror to stdoutput & serves the role of a pointer so as not to create a file named 1 but instead
+#reference stdoutput
+
+# Discover the resolved absolute path to systemctl
+command -v systemctl
+readlink -f "$(command -v systemctl)"
+
+#readlink resolves symbolic links, but without -f it would only resolve the first level if a symlink points
+#to another symlink
+
+#least privelege rule
+/etc/sudoers.d/deploy-nginx 
+%deploy ALL = (root) NOPASSWD: /usr/bin/systemctl reload nginx
+
+# Ensure no cached auth, then switch to the deployer account
+sudo -k
+sudo -u deployer -i
+
+# List effective sudo privileges
+aaa=$(sudo -l 2>&1); echo "$aaa"
+
+# Functional check: reload Nginx with least privilege
+sudo /usr/bin/systemctl reload nginx
+
+#sudo -u runs sudo command as user deployer
+
+# Inspect recent unit logs for "reloaded" entries
+journalctl -u nginx -n 20 --no-pager
+
+before=$(pidof nginx | awk '{print $1}')
+sudo /usr/bin/systemctl reload nginx
+after=$(pidof nginx | awk '{print $1}')
+if [ "$before" = "$after" ]; then echo "Reload successful (PID unchanged)"; else echo "PID changed; this was a restart"; fi
+
+#linux access control list solves the problem with file permissions, where each file only has 1 owner and 1 group.
+#acls apply more specific ownership and permissions. They let us track on access for other users or groups.
+
+#view acls with getfacl command
+getfacl /accounting
+
+#setting an acl
+setfacl [option] [action/specification] file
+#action would be -m (modify) or -x (remove). Specification would be the user or group followed by the 
+#permissions we want to set. In this case, we use the -d option for defaults. 
+
+setfacl -d -m accounting:rwx /accounting 
+
+#giving user kenny rwx access to the directory
+setfacl -m kenny:rwx /accounting
+
+#if we only want kenny to view things in /accounting and not write anything then
+setfacl -m kenny:r-x /accounting
+
+#now give kenny his own directory and add the accounting group to this directory
+# sot hat accounting can view kenny's directory and keny can write to his directory
+
+mkdir ./kenny
+chown kenny:accounting ./kenny
+getfacl ./kenny
+
+#now if lets say we want everyone from accounting group to view ./kenny except fred
+setfacl -m fred:- ./kenny
+getfacl ./kenny
+
+#now if we dont want anyone to see what kenny is workign on
+setfacl -m g:accounting:- ./kenny
+#for group acl we need to put the g:
+#for users replace the g with a u
+
+#setfacl assumes we mean user if nothing is in the spot
+
+#now remove base permissions for groupowner so that the rest of the accounting team can't snoop into kenny's 
+#reports
+
+chmod g-rwx ./kenny
+
+#giving ceo access to kenny's folder
+useradd lisa
+setfacl -m u:lisa:rwx ./kenny
+
+#check with 
+getfacl ./kenny
+
+#even though the group owner has no permission for ./kenny, the group owner permissions remain open
+
+#SElinux is a mandatory accesss control system unlike traditional linux access control, which is a Discretionary
+# Access Control system, where the user can just grant himself access to everything he owns with
+chmod a+rwx -R *
+
+
+#in RHEL SELinux has two policies
+#targeted - if there is a policy for a process it is managed by SELinux, everything else can run fine.
+#mls - can be very complex, can apply policies to all processes
+
+#you can tell what your system should be running by looking in /etc/selinux/config. You can also check via 
+#/usr/sbin/sestatus. This tell us which policy should be loaded and whetehr SELinux is running in permissive or 
+#enforcing mode
+
+#labeling is applied to processes, ports, files, etc. An SEContext is the labeling used. For files
+#and directories, this is stored as extended attributes on the file system. For other things, the kernel 
+#adds that information when the service comes up. Labels are in the following format
+user:role:type:level (optional)
+
+#for targeted policy, we only worry about type.
+#for example: the apache executable's SELinux context is httpd_exec_t. This can be viewed with ls -Z. 
+#The config directory is labeled httpd_config_t, the log file dir is httpd_log_t, the init script is 
+#httpd_initrc_exec_t, the ports the web server is running on are labeled with httpd_port_t. The _t reads as type.
+
+#Labeling is a logical way of grouping things together.
+#when running the web server, its process is labeled httpd_t and can be viewed with ps -Z
+
+# label enforcing allows processes running with a type to access files labeled as those types.
+#so process running in the httpd_t context can interact with a file with the httpd_config_t label, but 
+#not the same process can't interact with files in the shadow_t context
+
+#semanage command can manage some aspects of SELinux without requiring recompilation of policy sources.
+
+#On the file system, you can create labels with -Z passed to cp and mkdir.
+#tools like chcon and restorecon, and semanage interact directly with contexts.
+
+#in general a file inherits the context of its parent directory unless a policy defines a rule like if foo_t creates
+#a file in a directory labeled bar_t, transition it so the label is created with baz_t.
+
+#SELinux booleans are on/off switches for SELinux. They range from simple stuff like allowing the ftp
+#server access to home directories, to really arcane and esoteric settings.
+
+#see all booleans
+getsebool -a
+setsebool [-P] <name> 0/1 
+#-P makes the change permanent
+
+#to help debug this, install setroubleshoot and setroubleshoot-server.
+
+#to see set booleans, check /etc/selinux/targeted/modules/active. There is a file called booleans.local with any
+#custom changes made on the system.
+
+restorecon -vR /target/dir/ 
+#restores context to whatever should have been in herited from parent directories
+
+#the function uses information from /etc/selinux/targeted/contexts/files/file_contexts to determine
+#what a file or directory context should be
+
+# say a user wants to host a website from inside their homedir. You go into Apache's httpd.conf file and allow this
+#, but get disallowed errors, even after changing permissions on the homedir.
+
+#check /var/log/httpd/* and everything is 403. Now check /var/log/messages and 
+setroubleshoot:  SELinux is preventing /usr/bin/httpd from getattr access on the directory /home/fred.  
+For complete selinux messages, run [a command].
+#recommendation given for fix and tells you what happened
+
+#suppose a user asked you to copy files from their home dir to /var/www/html. You do so, but
+#get permission denied on them. A quick ls -Z will explain this. The file you copied has type user_home_t
+#because we moved it, not copied it.
+
+#first find out what type it should be be doing an ls -Z on a good directory. You can now fix it with chcon to the 
+#file type httpd_sys_content_t
+
+chchon -t httpd_sys_content_t /var/www/html/index.html
+
+#or easier just reference /var/www/html
+
+chchon --reference /var/www/html/ /var/www/html/index.html
+
+#if you want to put everything in a directory into the context you'd expect to have, use
+restorcon -vR /var/www/html
+
+#to update the context of all files in a directory (note that looking in /etc/selinux/targeted/contexts/files/\
+#file_contexts will give you the default contexts)
+
+semanage fcontext -a -e /var/www /target/dir/
+
+In the case that setting Booleans and modules is not enough, you need to create a policy. The best way to begin doing this is to set SELinux to permissive, then run the application through all its functionality and look through the log files for all of the errors.
+
+setenforce 0
+
+Then run sealert against the latest error message. In this case, the alert doesn’t find any bools because this is a new application, so it may tell you to run audit2allow.
+
+The way to do this is to grep whatever you’re running into issues with (e.g. httpd) in /var/log/audit/audit.log
+
+grep httpd /var/log/audit/audit.log | audit2allow -M namefornewpolicylocal
+
+Then make the policy active following the instructions it gives you.
+
+semodule -i namefornewpolicylocal.pp
+
+In short: Grep your error out of audit.log, pipe it to audit2allow, send the policy to semodule.
