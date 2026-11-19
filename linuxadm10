@@ -1,0 +1,317 @@
+#scheduling tasks
+
+#at command used to schedule a task to be ran at some point in the future 
+#install with sudo apt install at
+#tty prints the name of the terminal device connected to your standard input
+
+echo 'echo "greeting $USER!" > /dev/pts/0' | at now + 1 minutes
+
+# can view what at has queued with atq and view stored commands with at -c <job_number>
+#at jobs run once
+
+#the single quotes prevent the expansion of the USER variable, so 'echo "greetings $USER!" > /dev/pts/0' is sent to
+#at. After 1 minutes, the at daemon executs echo "greetings $USER!" > /dev/pts/0, where the USER var is expandined.
+# the output is redirected to the terminal device.
+
+#you can schedule jobs in linux using the crontab command, which relies on the cron daemon
+#each user has the ability to schedule jons that run as their user (including root)
+
+#display user's crontab with crontab -l
+
+crontab -l
+
+#unless you create a crontab for a user, there will not be one yet.
+
+#crontab -e lets you create cronjobs. After that command, you will be asked an editor.
+#at the bottom of the file opened add the following cronjob and save and quit
+* * * * * echo "test cron" > /dev/pts/0
+# the first star represents the minute the task should run, then hour, then day of month, then month, then weekday.
+#star '*' used to refer to all possible values of that specific time interval
+# comma '.' lists multiple values separated by the comma
+# dash '-' specifies a range of values
+# forward slash '/' specifies frequency 
+
+#tar used to archive
+
+sudo tar -czvf /var/backups/home.tar.gz /home/
+# -v for verbose
+# -c for for create
+# -z for gzip
+# -f for file
+
+#date command allows us to use date, use -I for iso format
+#create and edit root crontab with sudo crontab -e
+# this crontjob 0 5 * * * tar -zcf /var/backups/home.$(date -I).tar.gz /home/
+# runs at 5 am everyday and saves home dir and its subdirs in the /var/backups/ dir
+#/var/backups/ dir requires root permission, so make sure crontab is the rott's.
+
+#find command used to list files based on criteria
+find <starting_directory> <conditions> <actions>
+#example
+find /home -name "*.txt"
+#the command searches for all files in the home dir with a .txt extension
+find /var/backups -name "home.*.tar.gz" -mtime +7 -delete
+#the command search /var/backups dir for files that start with home. and end with .tar.gz
+# '*' means zero or more characters
+# -mtime means modification time, so +7 means 7 * 24 hours ago was the last modification
+#-mmin for minutes instead of mtime for days
+#-7 less than 7 days old, 7 for about 7 days old, and +7 is for more than 7 days old
+#-delete deletes all files that match the condition
+#can use -print to print the files that match the condition
+
+#there is also a system wide crontab defined in /etc/crontab
+#user crontabs are all inside /var/spool/cron (even root).
+#find them in /var/spool/cron/crontabs (p.s. use ls -l to view the names of the files to make sure, should 
+#be named after user).
+#system crontab also manages daily, weekly,a nd monthly scripts in /etc/cron.*
+ls -l /etc/cron.daily
+#each of those scripts in the directory cron.* do some regular task and are run in alphabetic order by run-parts. 
+#you can create a script and put it in /etc/cron.{daily,weekly,monthly} and it will run at the desired interval
+
+#systemd is installed by default and can start and stop services, as well as run tasks at specific times
+# using timers. You can see the ones already configured with:
+systemctl list-timers
+
+# systemctl lets you interface with the systemd init systemtem, which plays a crucial role in booting the 
+#operating system, supervising services, and managing a range of functionalities.
+
+#start a service
+systemctl start atd
+#at daemon started 
+
+#stop service
+systemctl stop atd
+
+#enable automatic service start at boot
+systemctl enable crond
+
+#disable automatic startup at boot
+systemclt disable crond
+
+#display current status and info about a service
+systemctl status crond
+
+#display all services
+systemctl list-units --type=service
+#all services whetehr active or not that are managed by systemd are listed
+
+#restart a service
+systemctl restart <service>
+
+#reload configuration for service without stopping it
+systemctl reload <service>
+
+#check if a service is currently running
+systemctl is-active <service>
+
+#check if a service is enabled to start at boot
+systemctl is-enabled <service>
+
+#check if a service has failed
+systemctl is-failed <service>
+
+#reboot the system
+systemctl reboot
+
+#shutdown operating system; terminates all running processes and services
+systemclt poweroff
+
+#put system into a suspend state
+systemctl suspend
+#system efffectively halts most operations, including cpu and other hardware components, conserving power.
+#However, current system state is kept in RAM, so resuming the system happens quickly
+
+#put system in hibernate state
+systemctl hibernate
+#saves everything you're doing on the computer to hard drive before shutting down the system.
+#upon start up everything you were doing is brought back
+
+#display system logs with journalctl
+#display system messages, kernel messages, service logs, and other events recorded int he system
+journalctl
+
+#display logs for a specific unit
+journalctl -u crond
+
+#display logs since a specific time
+journalctl --since=<time>
+journalctl --since "2024-01-01 08:00:00"
+
+#nned to make sure atd (at daemon) is runnign to schedule at jobs
+# at jobs for non-admin users may have permission restrictions
+#make sure you have read-write permission
+
+#run script with at -f
+at -f bashup.sh 02:00
+#runs script at 2 am
+#lists pending jobs
+atq
+
+#remove a job with atrm <number>
+atrm 10
+
+#at.allow and at.deny files control access for users to schedule jobs using at. The files reside in /etc/
+
+#at.allow specifies the users who are allowed to use the at command to schedule jobs
+#if empty all users allowed unless at.deny says otherwise
+
+#example first create at.allow and write to it
+sudo touch /etc/at.allow 
+sudo echo "user1" >> /etc/at.allow 
+sudo echo "user2" >> /etc/at.allow
+
+#at.deny example
+sudo touch /etc/at.deny 
+sudo echo "user3" >> /etc/at.deny
+
+#with crontab:
+# crontab -e: Opens the user's crontab file in an editor to add or edit cron jobs.
+#crontab -l: Lists the user's cron jobs.
+#crontab -r: Removes all of the user's cron jobs.
+#make sure cron daemon is running
+
+#example with dash '-' that is used to run at 9 am from monday to friday
+0 9 * * 1-5 command_to_execute
+
+#example with forward slash '/' that runs every 15 mins
+*/15 * * * * command_to_execute
+
+#also cron.allow and cron.deny in /etc/ dir same as the at versions
+#If both cron.allow and cron.deny exist, cron.allow takes precedence. 
+#If neither exists, only the superuser (root) can create crontab entries. 
+
+sudo touch /etc/cron.allow 
+sudo echo "user1" >> /etc/cron.allow 
+sudo echo "user2" >> /etc/cron.allow
+
+sudo touch /etc/cron.deny 
+sudo echo "user3" >> /etc/cron.deny
+
+
+#Timers are systemd unti files that end in .timer; they control .service files and events. They can be used instead
+#of cron. They have built in support for calendar time events, monotonic time events, and can run asynchronously.
+#Timers are like other unit config files and are loaded from the same paths, but they include a [Timer]section
+#that defines when and how the timer activates. 
+#Timer types:
+#Realtime timers: activate on calendar events, same as cronjobs do. The option OnCalendar= is used to 
+#define them
+#Monotonic timers: activate after a time span relative to a varying starting point. Stop if computer is 
+#temporarily suspended or shutdown. There are a number of different monotonic timers but all have the form
+# OnTypeSet=. Common monotonic timers include OnBootSec and OnUnitActiveSec.
+
+#Each .timer file has a matching .service file. The .timer file activates and controls the .service file.
+# The .service does not require an [Install] section as it is the timer units that are enabled.
+#If necessary, it is possible to control a differently-named unit using the Unit= option
+# in the timer's [Timer] section
+
+#to use a timer unit enable and start it first.
+systemctl list-timers
+
+#systemd offers the target timers.target which sets up all timers that should be active after boot
+#Use it by adding WantedBy=timers.target to the [Install] section of your timer and enable the timer unti
+
+#fix out of sync timers by deleting stamp-* files in /var/lib/systemd/timers
+#same fix for user timers, but go to ~/.local/share/systemd
+
+#a service unit file can be scheduled with a timer out-of-the-box. 
+
+#Example: a timer that will start 15 minutes after boot and again every week while the system is running
+/etc/systemd/system/foo.timer
+[Unit]
+Description=Run foo weekly and on boot
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1w
+
+[Install]
+WantedBy=timers.target
+
+ 
+#Example: a timer which starts once a week (12 am monday). When activated, it triggers the service immediately if it missed the last start time (option Persistent=true), like if the system was powered off.
+
+/etc/systemd/system/foo.timer
+
+[Unit]
+Description=Run foo weekly
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+
+#for more specific  dates and times, OnCalender events uses the following format
+DayOfWeek Year-Month-Day Hour:Minute:Second 
+#asterisk may be used to specify any value and commas may be used to list possible values. .. indicates a contiguous range.
+
+#example: run service first 4 days of the month only if that day is monday or tuesday
+OnCalendar=Mon,Tue *-*-01..04 12:00:00
+
+#example: run service on the first saturday of every month
+OnCalendar=Sat *-*-1...7 18:00:00
+
+#when using DayOfWeek, specify atleast one weekday. If you want to run something everyday at 4am:
+OnCalendar=*-*-* 4:00:00
+
+#to run services at different times,OnCalendar may be specified more than once.
+#Example: run at 22:30 on weekdays and at 20:00 on weekends
+OnCalendar=Mon..Fri 22:30
+OnCalendar=Sat,Sun 20:00
+
+#you can also specify a timezone at the end of the directive (using timedatectl list-timezones to list 
+#accepted values)
+OnCalendar=*-*-* 02:00:00 Europe/Paris
+
+#test OnCalendar time specifications with systemd-analyze calendar weekly or systemd-analyze calendar "Mon,Tue\
+# *-*-01..04 12:00:00" Add --iterations=N to ask for more iterations to be printed 
+
+#systemd-run is used to create transient.timer units. This basically allows you to run a specified time
+#without having a service file. 
+#example: touch a file after 30 seconds
+systemd-run --on-active=30 /bin/touch /tmp/foo
+
+#one can specify a pre-existing service file that does not have a timer file.
+#example: starting a systemd unit named someunit.service after 12.5 hours have elapsed
+systemd-run --on-active="12h 30m" --unit someunit.service
+
+#you can use template unit 
+/etc/systemd/system/monthly@.timer
+
+[Unit]
+Description=Monthly Timer for %i service
+
+[Timer]
+OnCalendar=*-*-1 02:00:00
+AccuracySec=6h
+RandomizedDelaySec=1h
+Persistent=true
+Unit=%i.service
+
+[Install]
+WantedBy=default.target
+
+#now just enable/start  monthly@unit_name.timer
+
+#some softawre tracks the time since last run, like blocking an update to a database if the last download
+#was less than 24 hours ago
+#timers dont track when the task they launched has ended. To work around this, we can use OnUnitInactiveSeconds
+
+
+ 
+/etc/systemd/system/daily-inactive@.timer
+
+[Unit]
+Description=Launch %i service 24hours after it deactivated
+
+[Timer]
+OnUnitInactiveSec=1day1sec
+Unit=%i.service
+Persistent=true
+
+[Install]
+WantedBy=default.target
+
+
