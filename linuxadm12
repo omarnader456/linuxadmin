@@ -1,0 +1,127 @@
+#file transfer
+#sftp is a secure file transfer protocol programme that is similar to ftp.
+#sftp performs all actions over an encrypted ssh transport.
+#start session with 
+sftp username@serv1 // server1 external ip
+
+#sftp commands
+cd dir // change directory on the ftp server to dir
+lcd dir // same operation but on client
+ls // list files in the current directory on the ftp server
+lls // same operation but on client
+pwd // prints current directory on the ftp server
+lpwd // same operation on the client
+get file // download the file from the ftp server to current firectory
+put file // upload the file from your machine to the ftp server
+exit // exits from the sftp programme
+mput files // uploads multiple files 
+mput *.log // all .log files in server working directory
+mget files // similar to mput but for downloads
+
+#you can create an sftp session with serverA, then on the same terminal create a sessiom
+#with serverB - now you have an sftp session between both servers
+
+#rsync is a tool used for file-copying and synchronizing 
+#backups
+#synchronizing directories
+#copying files between servers
+#mirroring websites
+#incremental transfers
+#preserving permissions and ownership
+#rsync only transfers the differences between source and destination after the first copy
+#it is very fast for repeated synchronizations
+
+rsync [OPTIONS] SOURCE DESTINATION
+rsync file.txt /backup/
+#here file.txt is being copied to /backup/
+
+rsync -r documents/ backup/
+#directory contents are copied
+
+rsync -a documents/ backup/
+#copy directories and preserves metadata
+#-a is equivalent to-rlptgoD
+#r recursive (copies directories recursively) else directories wont be copied
+#l symlinks - copies symbolic links as symbolic links rather than copying the files they 
+#point to
+#p perserves file permissions
+#t preserves file modification timestamps (essential for incremental backups)	 
+#g perserves group ownership
+#o preserves file ownership (need root privileges on the destination)
+#D preserves device files and special files (requires root privileges)
+
+#-v shows what rsync is doing
+#-vv more verbose
+#-h displays sizes nicely
+#-z compress data during transfer
+#--delete deletes files in destination not found in source
+#--delete-before deletes extra files before transfer begins
+#--delete-after deletes files after transfer finishes
+#--delete-delay queues deletions until  transfer completes 
+#--dry-run shows what would happen without actual changes happening (-n is synonymous)
+#--progress shows per-file progress
+#--partial keep partial transferred file (useful if transfer is interrupted)
+#-P same as --partial --progress
+#-e specifies remote shell
+rsync -av -e ssh src/ user@server:/backup/
+#can specify custom ssh port
+rsync -av -e "ssh -p 2222" src/ user@server:/backup/
+#--exclude skips certain files (can be used multiple times)
+rsync -av \
+  --exclude '*.log' \
+  --exclude '*.tmp' \
+  source/ dest/
+
+#--include inludes matching files and usually paired with exclude
+#--exclude-from reads exclusions from file (similar to requirements.txt with pip install 
+# or .gitignore with git)
+#-L symbolic links become real files
+#-c compare files using checksums
+#normal rsync compares by size and modification time
+#-c more accurate but slower
+#-u kips newer files at destination (so newer file updates at destination not overwritten
+#by version in sorce)
+#--bwlimit limits transfer speed
+rsync -av --bwlimit=1000 source/ dest/
+# 1000 kb/s
+#useful for not saturating links
+#--backup keeps overwritten files
+#--backup-dir stores replaced files elsewhere
+rsync \
+ --backup \
+ --backup-dir=/oldfiles
+#--ignore-existing only copies files that dont exist
+#-I always transfer even if timestamps match
+#-i shows change details
+rsync -avi source/ dest/
+
+output
+>f.st...... test.txt
+
+#-x stays in filesystem
+#avoids crossing mounted filesystems, which is useful when backing up root
+
+#-S efficient handling os sparse files (good for dbs and vm image files)
+#--numeric-ids copy UID/GID exactly
+#useful when user names differ between systems
+
+#--stats show summary
+
+#without trailing slash in source  
+rsync -av source dest/
+ 
+source/
+ ├─ a.txt
+ └─ b.txt
+#destination becomes 
+dest/
+ └─ source/
+      ├─ a.txt
+      └─ b.txt
+#with slash 
+rsync -av source/ dest/
+dest/
+ ├─ a.txt
+ └─ b.txt
+#so basically contents of source instead of directory itself
+
