@@ -1,0 +1,80 @@
+#repos
+
+#all linux installations have a number of important characteristics
+#version - e.g Ubuntu 20.04
+#Bit size - 32-bit or 64-bit
+#Chip - intel, AMD, PowerPC, ARM
+
+#the version number controls which version of an application you can install. 
+#Example: if you have Ubuntu 18.04 (april 2018 version), then installing Apache in 2026 would 
+#install Apache 2.4.29, the version that came out Ubuntu 18.04
+
+#this ensures stability, but costs web designers, which would like some feature introduced in 
+#later versions
+#however, security fixes are backported to older stable versions 
+
+#the package manager for ubuntu and debian distributions uses apt, others distros use yum, and dnf 
+#(Red Hat Family like RHEL, Fedora, and ROckyLinux, and Centos).
+
+#configuration is done with files under /etc/apt directory. To see where the packages you install are
+#coming from, use less to view /etc/apt/sources.list.d/ubuntu.sources where yuo'll see entries that 
+#specify repository URIs, suites, and components for your specific version
+
+     Types: deb
+     URIs: http://archive.ubuntu.com/ubuntu/
+     Suites: noble noble-updates noble-backports
+     Components: main restricted universe multiverse
+
+#package type deb
+#URI source (commonly a web address to pull the package from)
+#suite codename for distro version 
+#component - what set of packages are you pulling from it
+
+#an example line in /etc/apt/sources.list.d
+#here we are pulling deb packages from the main and non-free-firmware repos for debian 13 (trixie)
+deb http://deb.debian.org/debian trixie main non-free-firmware
+
+#main contains the core, essential packages required for the operating system to 
+#function, including the kernel, basic utilities, and critical libraries. #non-critical software
+#belong to other repos based on:
+#stability: for new packages, an unstable repo acts as a rolling release stream, whereas the official
+# support is focused more on stable repos like main - where the packages are well tested for bugs
+#ideology: if the software can be offered under a free license or not
+
+#checkout how many packages you can install
+apt-cache dump //consider pressing ctl-c to stop because it can be long-winded
+
+#filter package names using grep then count the number of lines
+apt-cache dump | grep "Package:" | wc -l
+
+#you can enable extra packages by enabling extra repositories
+
+#Ubuntu host 'Universe' and 'Multiverse' repositories  that are disabled by disabled by default 
+#and offer less support
+
+#update application manager after adding new repos
+sudo apt update
+
+#then you can lookup with apt-cache search netperf, for example, instead of manually running the
+# dump list
+#now check netperf with
+apt-cache policy netperf
+netperf:
+  Installed: (none)
+  Candidate: 2.7.0-0.1
+  Version table:
+     2.7.0-0.1 500
+        500 http://mirrors.digitalocean.com/ubuntu noble/multiverse amd64 Packages
+#for repos not from official sources, you can use dpkg to install deb package
+# you can add a register if company provided a repo and GPG signature key
+
+#only downloaded trusted repos
+
+#if you downloaded a .deb file, you can use dpkg or apt to install it
+dpkg -i /path/to/package/name.deb
+apt install /path/to/package/name.deb
+
+#you can even download apps if they are availbale with snap or flatpack; those formats are universal
+#and cross-distribution, and each package has its dependencies self-contained. 
+#You need to have snap installed to to download from the snap store, or Flatpak to to pull packages
+#from places like FlatHub 
