@@ -1,0 +1,73 @@
+#build from the source
+
+#instead of pre-compiled files (binaries), we can download source code and compile it ourselves
+
+#however, resolving dependency issues becomes a manual task.
+
+#source files are written in computer languages like c, c++, etc... 
+#We need to compile source files into executables, which are programmes that the server can execute.
+
+#first install a standard bundle of common compilers and similar tools. On Ubuntu it is called 
+# build-essential
+sudo apt install build-essential
+
+#first check you have nmpa installed
+nmap -V
+#shows the version of nmap installed
+
+#find its executable path with
+which nmap
+
+#use wget to download the desired version of nmap source using a url
+wget -v https://nmap.org/dist/nmap-7.70.tar.bz2
+#downloading tar ball of version 7.70 (bzip2 compression used)
+#-v for verbose
+
+#check for the tarball when finished by using ls -ltr in working dir
+ls -ltr
+
+#unzip and store files in a new directory
+tar -jxvf nmap-7.70.tar.bz2
+#use ls -ltr to confirm extraction into directory (directory has d in beginning)
+
+#cd into the nmpa-7.70 dir
+
+#find the install instruction file and use less to view it
+#for nmap we need to use ./configure make and sudo make install to compile the code and make
+#it available system wide
+
+#./configure is a script that checks the server (ie to see whether its ARM or intel based, 
+#32bit or 64, which compiler you have etc). can also take params to tailor the compilation of the
+# software
+
+#make compiles the software, typically using the gnu compiler gcc.
+
+#make install takes the compiled files, and installs them plus documentation to
+#your system and in some cases will setup services and schedule tasks etc.
+
+#this is unlikely to overwrite the exisiting nmap you already have, it is likely this version would
+#be installed somewhere else
+
+#/bin is for key parts of the operating system, /usr/bin for less critical utilities and 
+#/usr/local/bin for software you've chosen to manually install yourself. 
+#when you type a command, the first match in the path environment of all the directories in there will
+#start. So if /bin/nmap exists, it will run instead of /usr/local/bin/nmap. 
+#listing the full path version will make that version run instead
+
+#the locate command is a fast way tos earch for files, but because we just added the files, we first 
+#need to manually update the index of files
+sudo updatedb
+#now search
+locate bin/nmap
+
+#this should find the old and new copy of nmap
+
+#try now
+/usr/bin/nmap -V
+/usr/local/bin -V
+
+#because it is installed outside of apt, it wont get updates when apt update is run
+
+#this is not a big issue for nmap, but it would be for anything that runs as an exposed service
+#You know need to track security alerts for the application and install fixed versions when they're 
+#available. 
