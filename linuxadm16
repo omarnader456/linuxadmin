@@ -1,0 +1,46 @@
+#archiving and compression 
+
+#archiving consolidates multiple files into one box while perserving their structure and attributes
+#, but does not change the total data size
+#compression uses sophisticated algorithms to encode data efficiently, saving space by shrinking files
+
+#sgzip is used to compress files
+gzip big-file-name
+#output is big-file-name.gz
+
+#-v makes output verbose and -k keeps the original file
+#-d to decompress files
+
+#popular compression tools
+#gzip - common and fast
+#bzip2 - slower but generally creates smaller files
+#xz - most space-efficient tool in linux
+
+#creating archives with tar command
+#creating a snapshot of /etc/init.d folder
+tar -cvf myinits.tar /etc/init.d/
+#myinits.tar created in current directory
+#-f specifies the output filename, has to be directly before file is mentioned (order here matters)
+#-v for verbose 
+#then compress the file with
+gzip myinits.tar
+#result is myinits.tar.gz
+
+#a compressed tar archive is known as a tarball
+#do it in one step with -z
+tar -cvzf myinits.tar.gz /etc/init.d/
+#-c means create an archive
+#-z means compress the archive
+#use -x to extract the archive (retrieve files)
+tar -xvf archive.tar.gz 
+#before extracting preview contents using the -t flag
+tar -tf archive.tar.gz
+#use -C to extract into a specific directory to avoid potentially overwritting existing files in
+#current directory
+
+tar -xvf archive.tar.gz -C target_dir/
+
+
+
+
+
