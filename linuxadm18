@@ -1,0 +1,43 @@
+#logs 
+
+#logs help with monitoring and troubleshooting errors, but they consume disk space
+
+#logrotate application keeps logs in check. This allows us to specify how many days of logs
+#to keep. This allows us to split logs into manageable files, compresss them to save space,
+#or keep them in a separate server.
+
+#log control can be automated
+
+#looking in logs dir /var/log, and subdirectories like /var/log/apache2, you can see that
+#your logs are already being rotated. There should be a /var/log/syslog file, but also a 
+#series of older compressed versions with names like /var/log/syslog.1.gz
+
+#remembering that cron runs scripts in /etc/cron.daily - looking in there should reveal a 
+#script called logrotate - or possibly 00logrotate to force it to be the first task to run
+
+#the overall configuration of logrotate is set in /etc/logrotate.conf; have a look at that,
+# but also look at the files in the directory /etc/logrotate.d, as the contents there 
+#are merged in to create the full configuration. You will probably see one called apache2,
+#with contents like
+
+ /var/log/apache2/*.log {
+ weekly
+ missingok
+ rotate 52
+ compress
+ delaycompress
+ notifempty
+ create 640 root adm
+ }
+
+#any apache2.log file will be rotated each week, while 52 compressed copies will be kept
+
+#typicaaly installing an application will come with a suitable logrotate recipe installed
+#as well. You normally don't need to create these from scratch. 
+# However, default settings don't always match requirements, so it is reasonable for you
+#as an sysadmin to edit these. #for example, instead of apache2's default behavior of
+# creating 52 weekly logs, you might want logs created daily and mailed to an auditor, and
+#only keep 30 days worth if logs on the server.
+
+
+ 
