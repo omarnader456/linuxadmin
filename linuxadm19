@@ -1,0 +1,205 @@
+#inodes, symlinks, hard links
+
+#linux supports different files systems, although servers typically use ext3 or ext4 and
+#perhaps btrfs.
+#We deal primarily with the layer of linux that sits above all of these - the linux
+#virtual Filesystem
+
+#linux has a layer between the file's name and the actual data on the disk
+#this is the inode. This has a numerical value which you can see most easily in two ways:
+
+#the -i switch on ls
+
+ ls -li /etc/hosts
+ 35356766 -rw------- 1 root root 260 Nov 25 04:59 /etc/hosts
+
+#the stat command
+
+ stat /etc/hosts
+ File: `/etc/hosts'
+ Size: 260           Blocks: 8           IO Block: 4096   regular file
+ Device: 2ch/44d     Inode: 35356766     Links: 1
+ Access: (0600/-rw-------)  Uid: (  0/   root)   Gid: ( 0/  root)
+ Access: 2012-11-28 13:09:10.000000000 +0400
+ Modify: 2012-11-25 04:59:55.000000000 +0400
+ Change: 2012-11-25 04:59:55.000000000 +0400
+
+#every file points to an inode that in turn points to the actual data on the disk.
+#this means that several filenames could point t the same inode - and hence have exactly
+#the same contents. this is a standard method called a hard link. Also, note that 
+#permissions, ownership and dates of filenames are kept at the inode level, not the file-
+#name. 
+#move tothe home directory
+cd
+#use ln command to create a hard link
+ln /etc/passwd link1
+
+#now create a symbolic link, like this
+ln -s /etc/passwd link2
+
+#use ls-li to view the resulting files, and less or cat to view them
+
+#symlink permissions generally show as allowing everything - but what matters is the 
+#permission of the file it points to
+
+#symlinks are common in scripts that start your machine when you change run level
+Example
+ls -ltr /etc/rc2.d/*
+
+#this dir holds all the scripts that run automatically when your machine changes to
+#runlevel2. Most are just symlinks to scripts in /etc/init.d
+
+#it is also common to have something like
+ prog
+ prog-v3
+ prog-v4
+
+#where prog is a symlink, originally to v3, but now points to v4
+#differences
+Hard links:
+
+    Only link to a file, not a directory
+    Can’t reference a file on a different disk/volume
+    Links will reference a file even if it is moved
+    Links reference inode/physical locations on the disk
+
+Symbolic (soft) links:
+
+    Can link to directories
+    Can reference a file/folder on a different hard disk/volume
+    Links remain if the original file is deleted
+    Links will NOT reference the file anymore if it is moved
+    Links reference abstract filenames/directories and NOT physical locations.
+    They have their own inode
+
+#the linux file system uses a common set of APi functions, which allows support for 
+#a large variety of filesystems on a large variety of storage devices.
+#For example, the read function allows some number of bytes to be read from a given 
+#file descriptor. The read function doesnt know about file system types, like ext3 or NFS.
+#It also doesnt know about storage mediums that are the actual places where
+#file systems are mounted, like AT Attachment Packet Interface (ATAPI) disk, 
+#Serial-Attached SCSI (SAS) disk, or Serial Advanced Technology Attachment (SATA) disk.
+#Yet the read function call returns data for an open file as expected.
+#A filesystem is an organisation of data and metadata on a storage device. With all the
+#different filesystems and media types, you would expect that the linux filesystem
+#interface is implemented as a layered architecture, separating the user interface layer 
+#from the file system implementation from the drivers that manipulate the storage devices.
+
+#associating a filesystem to a storage device in linux is a process called mounting.
+#the mount command is used to attach a file system to the current file system hierarchy
+#(root). During a mount, you provide a file system type, a file system, and a mount point
+#to illustrate the capabilities of the linux filesystem layer (and the use of mount),
+#create a file system in a file within the current file system.
+#This is accomplished first by creating a file of a given size using dd(copy a file using
+#/dev/zero as the source) -- in other words, a file initialized with zeros. 
+
+dd if=/dev/zero of=file.img bs=1k count=10000
+#now we have a file called file.img that is 10MB. Use the losetup command to 
+#associate a loop device with the file (making it look like a block device instead of just
+#a regular file within the file system). 
+
+losetup /dev/loop0 file.img
+
+#Now the file appears as a block device (represented by /dev/loop0). Create a file system
+#on the device with mke2fs. This command creates a new second ext2 file system of the 
+#defined size.
+
+mke2fs -c /dev/loop0 10000
+
+#now the file.img file, represented by loop device /dev/loop0, is mounted to the mount point
+#/mnt/point1 using the mount command. The specification of the file system is ext2. 
+#When mounted, you can treat this mount point as a new file system by doing using
+# an ls command.
+
+mkdir /mnt/point1
+mount -t ext2 /dev/loop0 /mnt/point1
+ls mnt/point1
+
+#now you can create a new file within the new mounted file system, associating it with 
+#a loop devic, aand creating another file system on it
+
+dd if=/dev/zero of=/mnt/point1/file.img bs=1k count 1000
+losetup /dev/loop1 /mnt/point1/file.img
+mke2fs -c /dev/loop1 1000
+mkdir /mnt/point2
+mount -t ext2 /dev/loop1 /mnt/point2
+ls /mnt/point2
+ls /mnt/point1
+
+#high-level architecture
+#Although the majority of the file system code exists in the kernel, the architecture  
+# relationship between the major file system-related components in both user
+#space and the kernel do intereact through userspace apps and gnu c libraries.
+#User space contains the applications and the GNU C Library (glibc), which provides the
+#user interface for the file system calls. The system call interface acts as a switch,
+#funneling system calls from user space to the appropriate endpoints in kernel space
+
+#The vfs is the primary interface to the underlying file systems. This component
+#exports a set of interfaces and then abstracts them to the individual file systems, which 
+#may behave very differently from one another. Two caches exist for filesystem objects
+#(inodes and dentries), each of which provides a pool of recently-used file system objects
+
+#Each individual file system implementation, like ext2, JFS,a nd soon, exports a common set
+#of interfaces that is used by the VFS. The buffer cache buffers requests between the 
+#file systems and the block devices that they manipulate. For example, read and 
+#write requests to the underlying device drivers migrate through the buffer cache.
+#This allows the requests to be cached there for faster access. The buffer cache is 
+#managed as a set of least recently used lists. Note that you can use the sync command 
+#to flush the buffer cache out to the storage media.
+
+#Linux views filesystems from the perspective of a common set of objects. These objects are
+#the superblock, inode, dentry, and file. At the root of each filesystem is the superblock
+#,which describes and maintains state for the file system. Every object that is managed
+# within a file system is represented in linux as an inode.The inode contains all the 
+# metadata to manage objects in the file system. Another set of structures, called dentries
+#, is used to translate between names and inodes, for which a directory cache exists to
+#keep the most-recently used around. The dentry also maintains relationships between 
+#directories and files for traversing file systems. Finally, a vfs file represents an
+#open file.
+
+#The VFS acts as the root level of the file-system interface. The VFS keeps track of the 
+#Currently-supported file systems, as well as those file systems that are currently mounted
+#File systems can be dynamically added or removed from linux using a set of registration
+#functions. The kernel keeps a list of currently-supported file systems, which can be viewed from user space through the /proc file system. This virtual file also shows the 
+#devices currently associated with the file systems. To add a new new file system to linux,
+#register_filesystem is called. This takes a single argument defining the reference to a 
+#file system structure (file_system_type), which defines the name of the file system, a
+# set of attributes, and two superblock functions. A file system can also be unregistered.
+ 
+#Registering a new filesystem places the new file system and its pertinent information onto
+#a file_systems list. This list defines the file systems that can be supported. You can 
+#view this list by typing cat /proc/filesystems
+#another structure maintained in the VFS is the mounted file systems. This provides the 
+#file systems that are currently mounted. This links to the superblock structure
+
+#The superblock is a structure that represents a file system. It includes the necessary 
+#information to manage the file system during operation. It includes the file system
+#name, the size of the file system and its state, a reference to the block device,
+#and metadata information. The superblock is typically stored on the storage medium but can
+#be created in real time if one doesn't exist. 
+#an important element of the superblock is a definition to the superblock operations.
+# This structure defines the set of functions for managing inodes within the file system. 
+#For example, inodes can be allocated with alloc_inode or deleted with destroy_inode. 
+#You can read and write inodes with read_inode and write_inode or sync the file system 
+#with sync_fs. You can find the super_operations structure in ./linux/include/linux/fs.h.
+#Each filesystem provides its own inode methods, which implement the operations and provide
+#the common abstraction to the vfs layer.
+
+#The inode represents an object in the file system with a unique identifier. 
+#The individual file systems provide methods for translating a filename into a unique 
+#inode identifier and then to an inode reference. The inode_operations and file_operations
+# structures refers to the individual operations that may be performed on the inode. 
+#For example, inode_operations define those operations that operate directly on the inode
+# and file_operations refer to those methods related to the files and directories.
+#the most recently used inodes and dentries are kept in the inode and directory cache
+#respectively. Note that for each inode cache there is a correponding dentry in the 
+#directory cache.
+
+#Except for the individual file system implementations, the bottom of the file system layer
+#is the buffer cache. This element keeps track of read and write requests from the 
+#individual file system implementation and the physical devices. For efficiency, Linux 
+#maintains a cache of the requests to avoid having to go back out to the physical device
+# for all requests. Instead, the most-recently used buffers are cached here and can be 
+#quickly provided back to the individual file system.
+
+  
