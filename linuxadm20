@@ -1,0 +1,68 @@
+#scripting
+
+#scripts are simple text files, but if you set the "execute" permissions on them then
+# the system will look for a special line starting with the two characters '#' and '!'
+
+#typically looks like
+#!/bin/bash
+
+# hash (#) normally a comment, but adding a ! interprets this as feed the rest of this
+#to the /bin/bash program.
+
+#similar scripting mechanics work for other languages like perl  and python
+#!/usr/bin/perl
+#!/usr/bin/env python3
+
+#Example script listing who has been unsuccessfully trying to login to your server, with
+# entries from /var/log/auth.log
+
+#!/bin/bash
+echo "the last failed login from ip"
+grep -i "disconnected from" /var/log/auth.log | tail -1 | cut -d : -f4 | cut -f 7 -d " "
+
+#to make it executbale add
+chmod +x <filename>
+
+#run it with either
+#if in current dir of file
+./<filename>
+#or add file to the path
+sudo mv <filename> /usr/local/bin/<filename>
+
+#You can expand this script so that it requires a parameter and prints out some 
+#syntax help when you don’t give one. There are a few new tricks in this, so it’s worth
+# studying:
+
+#!/usr/bin/env bash
+#
+#   topattack - list the most persistent attackers
+#
+# Ensure "graceful exit" in case the script was sourced.
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then
+        echo "Don't source this file. Execute it.";
+        return 1;
+fi;
+# Display usage hint if the script was executed with no/invalid argument.
+if [[ -z "$1" ]] || [[ ! "$1" =~ ^[0-9]+$ ]] || (( $1 < 1 )); then
+        echo -e "\nUsage:\n\t$(basename "${BASH_SOURCE:-$0}") <NUM>";
+        echo "Lists the top <NUM> attackers by their IP address.";
+        echo -e "(<NUM> can only be a natural number)\n";
+        exit 0;
+fi;
+# Make sure the log file is available for parsing by this user.
+if [[ ! -f "/var/log/auth.log" ]] || [[ ! -r "/var/log/auth.log" ]]; then
+        echo -e "\nI could not read the log file: '/var/log/auth.log'\n";
+        exit 2;
+fi;
+# Use 'cat' command and "here document" to avoid repeated 'echo' commands.
+cat << _EndOfHeader_
+
+Top $1 persistent recent attackers
+
+Attempts      IP
+-----------------------
+_EndOfHeader_
+# Too long command pipelines can be spanned over multiple lines with \
+# followed immediately by a newline character (i.e. ENTER, RETURN, '\n')
+grep 'Disconnected from authenticating user root' "/var/log/auth.log" \
+ | cut -d':' -f 4 | cut -d' ' -f 7 | sort | uniq -c | sort -nr | head -n "$1";
